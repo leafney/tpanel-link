@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "网页信息收集器",
+  "version": "1.0",
+  "description": "收集当前网页的标题、链接和图标",
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "vite.svg"
+  },
+  "permissions": ["activeTab"]
+}
