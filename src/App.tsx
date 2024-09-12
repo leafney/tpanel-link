@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
+import { Card, Input, Button, Typography, Space, message } from "antd";
+import { LinkOutlined } from "@ant-design/icons";
 import "./App.css";
+
+const { Title, Paragraph } = Typography;
 
 function App() {
   const [pageInfo, setPageInfo] = useState({
@@ -30,32 +34,44 @@ function App() {
         body: JSON.stringify({ ...pageInfo, tags }),
       });
       if (response.ok) {
-        alert("提交成功！");
+        message.success("提交成功！");
       } else {
-        alert("提交失败，请重试。");
+        message.error("提交失败，请重试。");
       }
     } catch (error) {
       console.error("提交出错:", error);
-      alert("提交出错，请重试。");
+      message.error("提交出错，请重试。");
     }
   };
 
   return (
-    <div className="App" style={{ width: "300px", padding: "10px" }}>
-      <h2>当前网页信息</h2>
-      <p>标题: {pageInfo.title}</p>
-      <p>链接: {pageInfo.link}</p>
-      <p>
-        图标: <img src={pageInfo.icon} alt="网页图标" width="16" height="16" />
-      </p>
-      <input
-        type="text"
-        value={tags}
-        onChange={(e) => setTags(e.target.value)}
-        placeholder="输入标签，用逗号分隔"
-      />
-      <button onClick={handleSubmit}>提交</button>
-    </div>
+    <Card title={<Title level={4}>Grape</Title>} style={{ width: 300 }}>
+      <Space direction="vertical" size="middle" style={{ display: "flex" }}>
+        <Paragraph>
+          <LinkOutlined />{" "}
+          <a href={pageInfo.link} target="_blank" rel="noopener noreferrer">
+            访问链接
+          </a>
+        </Paragraph>
+        <Paragraph>
+          图标:{" "}
+          <img src={pageInfo.icon} alt="网页图标" width="16" height="16" />
+        </Paragraph>
+        <Input
+          value={pageInfo.title}
+          onChange={(e) => setPageInfo({ ...pageInfo, title: e.target.value })}
+          placeholder="编辑标题"
+        />
+        <Input
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
+          placeholder="输入标签，用逗号或空格分隔"
+        />
+        <Button type="primary" onClick={handleSubmit} block>
+          提交
+        </Button>
+      </Space>
+    </Card>
   );
 }
 
