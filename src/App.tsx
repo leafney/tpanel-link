@@ -58,13 +58,15 @@ function App() {
     <Card title={<Title level={4}>Grape</Title>} style={{ width: 400 }}>
       <Space direction="vertical" size="middle" style={{ display: "flex" }}>
         <Space>
+          <Paragraph>链接:</Paragraph>
           <LinkOutlined />{" "}
           <a href={pageInfo.link} target="_blank" rel="noopener noreferrer">
             {pageInfo.title}
           </a>
         </Space>
         <Space>
-          <img src={pageInfo.icon} alt="图标" width="32" height="32" />
+          <Paragraph>图标:</Paragraph>
+          <img src={pageInfo.icon} alt="图标" width="36" height="36" />
         </Space>
         <Space>
           <Paragraph>标题:</Paragraph>
