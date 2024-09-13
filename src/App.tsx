@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, Input, Button, Typography, message } from "antd";
+import { Card, Input, Button, Typography, message, Modal } from "antd";
 import { LinkOutlined, SettingOutlined } from "@ant-design/icons";
 import "./App.css";
 
@@ -14,6 +14,8 @@ function App() {
   });
   const [tags, setTags] = useState("");
   const [titleError, setTitleError] = useState(false); // 新增状态
+  const [isSettingModalVisible, setIsSettingModalVisible] = useState(false);
+  const [apiUrl, setApiUrl] = useState("");
 
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -24,6 +26,13 @@ function App() {
         icon: tab.favIconUrl || "",
         desc: "",
       });
+    });
+
+    // 初始化 apiUrl
+    chrome.storage.sync.get(["apiUrl"], (result) => {
+      if (result.apiUrl) {
+        setApiUrl(result.apiUrl);
+      }
     });
   }, []);
 
@@ -41,9 +50,10 @@ function App() {
       const apiUrl = result.apiUrl;
 
       if (!apiUrl) {
-        message.error("请先在设置页面配置 API 地址");
+        message.error("请先在设置页面配置 API URL");
         return;
       }
+
       message.success(apiUrl);
 
       const response = await fetch(apiUrl, {
@@ -65,7 +75,30 @@ function App() {
   };
 
   const handleConfigClick = () => {
-    chrome.runtime.openOptionsPage();
+    setIsSettingModalVisible(true);
+  };
+
+  const handleSettingModalOk = () => {
+    if (!apiUrl.trim()) {
+      message.error("请输入完整的 API URL");
+      return;
+    }
+
+    // 简单的 URL 格式验证
+    if (!apiUrl.startsWith("http://") && !apiUrl.startsWith("https://")) {
+      message.error("请输入有效的 URL，包括 http:// 或 https://");
+      return;
+    }
+
+    // 保存 API URL 到 Chrome 存储
+    chrome.storage.sync.set({ apiUrl }, () => {
+      message.success("API URL 保存成功");
+      setIsSettingModalVisible(false);
+    });
+  };
+
+  const handleSettingModalCancel = () => {
+    setIsSettingModalVisible(false);
   };
 
   return (
@@ -149,6 +182,19 @@ function App() {
           </div>
         </div>
       </Card>
+
+      <Modal
+        title="设置"
+        open={isSettingModalVisible}
+        onOk={handleSettingModalOk}
+        onCancel={handleSettingModalCancel}
+      >
+        <Input
+          value={apiUrl}
+          onChange={(e) => setApiUrl(e.target.value)}
+          placeholder="请输入完整的 API URL（例如：https://api.example.com/v1/url）"
+        />
+      </Modal>
     </div>
   );
 }

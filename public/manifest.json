@@ -8,5 +8,5 @@
     "default_icon": "vite.svg"
   },
   "permissions": ["activeTab", "storage"],
-  "options_page": "options.html"
+  "host_permissions": ["http://*/*", "https://*/*"]
 }
