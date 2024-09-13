@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, Input, Button, Typography, message } from "antd";
-import { LinkOutlined } from "@ant-design/icons";
+import { LinkOutlined, SettingOutlined } from "@ant-design/icons";
 import "./App.css";
 
 const { Title, Paragraph } = Typography;
@@ -36,7 +36,17 @@ function App() {
     setTitleError(false);
 
     try {
-      const response = await fetch("您的API地址", {
+      // 从 Chrome 存储中获取 API 地址
+      const result = await chrome.storage.sync.get(["apiUrl"]);
+      const apiUrl = result.apiUrl;
+
+      if (!apiUrl) {
+        message.error("请先在设置页面配置 API 地址");
+        return;
+      }
+      message.success(apiUrl);
+
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,13 +64,23 @@ function App() {
     }
   };
 
+  const handleConfigClick = () => {
+    chrome.runtime.openOptionsPage();
+  };
+
   return (
     <div className="xbox flex justify-center items-center min-h-screen bg-gray-100 p-4">
       <Card
         title={
-          <Title level={4} className="text-center">
-            Grape
-          </Title>
+          <div className="flex justify-between items-center">
+            <Title level={4} className="text-center flex-grow">
+              Grape
+            </Title>
+            <SettingOutlined
+              className="text-xl cursor-pointer"
+              onClick={handleConfigClick}
+            />
+          </div>
         }
         className="w-full max-w-full sm:max-w-3xl mx-auto"
       >

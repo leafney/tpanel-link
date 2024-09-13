@@ -7,5 +7,6 @@
     "default_popup": "index.html",
     "default_icon": "vite.svg"
   },
-  "permissions": ["activeTab"]
+  "permissions": ["activeTab", "storage"],
+  "options_page": "options.html"
 }
