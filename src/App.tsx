@@ -45,28 +45,39 @@ function App() {
   };
 
   return (
-    <Card title={<Title level={4}>Grape</Title>} style={{ width: 300 }}>
+    <Card title={<Title level={4}>Grape</Title>} style={{ width: 400 }}>
       <Space direction="vertical" size="middle" style={{ display: "flex" }}>
         <Paragraph>
+          链接:
           <LinkOutlined />{" "}
           <a href={pageInfo.link} target="_blank" rel="noopener noreferrer">
-            访问链接
+            {pageInfo.title}
           </a>
         </Paragraph>
         <Paragraph>
-          图标:{" "}
-          <img src={pageInfo.icon} alt="网页图标" width="16" height="16" />
+          图标: <img src={pageInfo.icon} alt="图标" width="32" height="32" />
         </Paragraph>
-        <Input
-          value={pageInfo.title}
-          onChange={(e) => setPageInfo({ ...pageInfo, title: e.target.value })}
-          placeholder="编辑标题"
-        />
-        <Input
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
-          placeholder="输入标签，用逗号或空格分隔"
-        />
+        <Space>
+          <Paragraph>标题:</Paragraph>
+          <Input.TextArea
+            value={pageInfo.title}
+            onChange={(e) =>
+              setPageInfo({ ...pageInfo, title: e.target.value })
+            }
+            placeholder="编辑标题"
+            style={{ width: 300 }} // 设置宽度为300px
+            autoSize={{ minRows: 3, maxRows: 5 }} // 设置自动调整行数
+          />
+        </Space>
+        <Space>
+          <Paragraph>标签:</Paragraph>
+          <Input
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="输入标签，用逗号或空格分隔"
+            style={{ width: 300 }}
+          />
+        </Space>
         <Button type="primary" onClick={handleSubmit} block>
           提交
         </Button>
