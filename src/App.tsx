@@ -10,8 +10,10 @@ function App() {
     title: "",
     link: "",
     icon: "",
+    desc: "",
   });
   const [tags, setTags] = useState("");
+  const [titleError, setTitleError] = useState(false); // 新增状态
 
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -20,11 +22,19 @@ function App() {
         title: tab.title || "",
         link: tab.url || "",
         icon: tab.favIconUrl || "",
+        desc: "",
       });
     });
   }, []);
 
   const handleSubmit = async () => {
+    if (!pageInfo.title.trim()) {
+      setTitleError(true);
+      message.error("请输入标题");
+      return;
+    }
+    setTitleError(false);
+
     try {
       const response = await fetch("您的API地址", {
         method: "POST",
@@ -60,10 +70,22 @@ function App() {
           <Paragraph>标题:</Paragraph>
           <Input.TextArea
             value={pageInfo.title}
-            onChange={(e) =>
-              setPageInfo({ ...pageInfo, title: e.target.value })
-            }
-            placeholder="编辑标题"
+            onChange={(e) => {
+              setPageInfo({ ...pageInfo, title: e.target.value });
+              setTitleError(false);
+            }}
+            placeholder="编辑标题（必填）"
+            style={{ width: 300, borderColor: titleError ? "red" : undefined }}
+            autoSize={{ minRows: 2, maxRows: 5 }}
+            status={titleError ? "error" : ""}
+          />
+        </Space>
+        <Space>
+          <Paragraph>描述:</Paragraph>
+          <Input.TextArea
+            value={pageInfo.desc}
+            onChange={(e) => setPageInfo({ ...pageInfo, desc: e.target.value })}
+            placeholder="编辑描述"
             style={{ width: 300 }} // 设置宽度为300px
             autoSize={{ minRows: 2, maxRows: 5 }} // 设置自动调整行数
           />
