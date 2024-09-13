@@ -47,16 +47,15 @@ function App() {
   return (
     <Card title={<Title level={4}>Grape</Title>} style={{ width: 400 }}>
       <Space direction="vertical" size="middle" style={{ display: "flex" }}>
-        <Paragraph>
-          链接:
+        <Space>
           <LinkOutlined />{" "}
           <a href={pageInfo.link} target="_blank" rel="noopener noreferrer">
             {pageInfo.title}
           </a>
-        </Paragraph>
-        <Paragraph>
-          图标: <img src={pageInfo.icon} alt="图标" width="32" height="32" />
-        </Paragraph>
+        </Space>
+        <Space>
+          <img src={pageInfo.icon} alt="图标" width="32" height="32" />
+        </Space>
         <Space>
           <Paragraph>标题:</Paragraph>
           <Input.TextArea
@@ -66,7 +65,7 @@ function App() {
             }
             placeholder="编辑标题"
             style={{ width: 300 }} // 设置宽度为300px
-            autoSize={{ minRows: 3, maxRows: 5 }} // 设置自动调整行数
+            autoSize={{ minRows: 2, maxRows: 5 }} // 设置自动调整行数
           />
         </Space>
         <Space>
