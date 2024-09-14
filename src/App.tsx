@@ -63,8 +63,6 @@ function App() {
         return;
       }
 
-      message.success(apiUrl);
-
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
@@ -73,7 +71,10 @@ function App() {
         body: JSON.stringify({ ...pageInfo, tags }),
       });
       if (response.ok) {
-        message.success("提交成功！");
+        message.success("提交成功！", 1, () => {
+          // 在成功消息显示后关闭窗口
+          window.close();
+        });
       } else {
         message.error("提交失败，请重试。");
       }
