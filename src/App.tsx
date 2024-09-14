@@ -24,6 +24,8 @@ function App() {
   const [isSettingModalVisible, setIsSettingModalVisible] = useState(false);
   const [apiUrl, setApiUrl] = useState("");
   const [isApiUrlValid, setIsApiUrlValid] = useState(false);
+  const [baseUrl, setBaseUrl] = useState("");
+  const API_PATH = "/api/v1/bookmark";
 
   // 获取当前页面信息
   useEffect(() => {
@@ -93,12 +95,15 @@ function App() {
 
   // 验证 API URL
   const validateApiUrl = async () => {
-    if (!apiUrl.trim()) {
-      message.error("请先在设置页面配置 API URL");
+    if (!baseUrl.trim()) {
+      message.error("请输入基础 URL");
       return;
     }
+
+    const fullApiUrl = `${baseUrl.trim()}${API_PATH}`;
+
     try {
-      const response = await fetch(apiUrl, {
+      const response = await fetch(fullApiUrl, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -106,6 +111,7 @@ function App() {
       });
       if (response.ok) {
         setIsApiUrlValid(true);
+        setApiUrl(fullApiUrl); // 保存完整的 URL
         message.success("API URL 验证成功");
       } else {
         setIsApiUrlValid(false);
@@ -119,18 +125,17 @@ function App() {
   };
 
   const handleSettingModalOk = () => {
-    if (!apiUrl.trim()) {
-      message.error("请输入完整的 API URL");
+    if (!baseUrl.trim()) {
+      message.error("请输入基础 URL");
       return;
     }
 
-    // 简单的 URL 格式验证
-    if (!apiUrl.startsWith("http://") && !apiUrl.startsWith("https://")) {
-      message.error("请输入有效的 URL，包括 http:// 或 https://");
+    if (!isApiUrlValid) {
+      message.error("请先验证 API URL");
       return;
     }
 
-    // 保存 API URL 到 Chrome 存储
+    // 保存完整的 API URL 到 Chrome 存储
     chrome.storage.sync.set({ apiUrl }, () => {
       message.success("API URL 保存成功");
       setIsSettingModalVisible(false);
@@ -250,9 +255,9 @@ function App() {
       >
         <div className="flex items-center space-x-2">
           <Input
-            value={apiUrl}
-            onChange={(e) => setApiUrl(e.target.value)}
-            placeholder="请输入完整的 API URL（例如：https://api.example.com/v1/url）"
+            value={baseUrl}
+            onChange={(e) => setBaseUrl(e.target.value)}
+            placeholder="请输入基础 URL（例如：http://127.0.0.1:8080）"
             className="flex-grow"
           />
           <Button
