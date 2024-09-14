@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Card, Input, Button, Typography, message, Modal } from "antd";
+import { Card, Input, Button, Typography, message, Modal, Tooltip } from "antd";
 import {
   LinkOutlined,
   SettingOutlined,
   SmileOutlined,
   FrownOutlined,
+  CopyOutlined,
 } from "@ant-design/icons";
 import "./App.css";
 
@@ -140,6 +141,15 @@ function App() {
     setIsSettingModalVisible(false);
   };
 
+  // 添加复制标题到描述的函数
+  const copyTitleToDesc = () => {
+    setPageInfo((prevState) => ({
+      ...prevState,
+      desc: prevState.title,
+    }));
+    message.success("标题已复制到描述");
+  };
+
   return (
     <div className="xbox flex justify-center items-center min-h-screen bg-gray-100 p-4">
       <Card
@@ -177,17 +187,26 @@ function App() {
           </div>
           <div className="flex space-x-4">
             <Paragraph className="mb-0 w-10">标题:</Paragraph>
-            <Input.TextArea
-              value={pageInfo.title}
-              onChange={(e) => {
-                setPageInfo({ ...pageInfo, title: e.target.value });
-                setTitleError(false);
-              }}
-              placeholder="编辑标题（必填）"
-              className={`flex-1 ${titleError ? "border-red-500" : ""}`}
-              autoSize={{ minRows: 2, maxRows: 5 }}
-              status={titleError ? "error" : ""}
-            />
+            <div className="flex-1 flex items-center space-x-2">
+              <Input.TextArea
+                value={pageInfo.title}
+                onChange={(e) => {
+                  setPageInfo({ ...pageInfo, title: e.target.value });
+                  setTitleError(false);
+                }}
+                placeholder="编辑标题（必填）"
+                className={`flex-1 ${titleError ? "border-red-500" : ""}`}
+                autoSize={{ minRows: 2, maxRows: 5 }}
+                status={titleError ? "error" : ""}
+              />
+              <Tooltip title="复制标题到描述">
+                <Button
+                  icon={<CopyOutlined />}
+                  onClick={copyTitleToDesc}
+                  className="flex-shrink-0"
+                />
+              </Tooltip>
+            </div>
           </div>
           <div className="flex space-x-4">
             <Paragraph className="mb-0 w-10">描述:</Paragraph>
