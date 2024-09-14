@@ -29,7 +29,7 @@ function App() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tab = tabs[0];
       setPageInfo({
-        title: tab.title || "",
+        title: (tab.title || "").trim(),
         link: tab.url || "",
         icon: tab.favIconUrl || "",
         desc: "",
