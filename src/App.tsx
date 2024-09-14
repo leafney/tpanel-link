@@ -1,11 +1,17 @@
 import { useState, useEffect } from "react";
 import { Card, Input, Button, Typography, message, Modal } from "antd";
-import { LinkOutlined, SettingOutlined } from "@ant-design/icons";
+import {
+  LinkOutlined,
+  SettingOutlined,
+  SmileOutlined,
+  FrownOutlined,
+} from "@ant-design/icons";
 import "./App.css";
 
 const { Title, Paragraph } = Typography;
 
 function App() {
+  // 页面信息
   const [pageInfo, setPageInfo] = useState({
     title: "",
     link: "",
@@ -16,7 +22,9 @@ function App() {
   const [titleError, setTitleError] = useState(false); // 新增状态
   const [isSettingModalVisible, setIsSettingModalVisible] = useState(false);
   const [apiUrl, setApiUrl] = useState("");
+  const [isApiUrlValid, setIsApiUrlValid] = useState(false);
 
+  // 获取当前页面信息
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tab = tabs[0];
@@ -36,6 +44,7 @@ function App() {
     });
   }, []);
 
+  // 提交数据
   const handleSubmit = async () => {
     if (!pageInfo.title.trim()) {
       setTitleError(true);
@@ -74,8 +83,37 @@ function App() {
     }
   };
 
+  // 打开设置页面
   const handleConfigClick = () => {
+    setIsApiUrlValid(false);
     setIsSettingModalVisible(true);
+  };
+
+  // 验证 API URL
+  const validateApiUrl = async () => {
+    if (!apiUrl.trim()) {
+      message.error("请先在设置页面配置 API URL");
+      return;
+    }
+    try {
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (response.ok) {
+        setIsApiUrlValid(true);
+        message.success("API URL 验证成功");
+      } else {
+        setIsApiUrlValid(false);
+        message.error("API URL 验证失败");
+      }
+    } catch (error) {
+      setIsApiUrlValid(false);
+      console.error("API URL 验证失败:", error);
+      message.error("API URL 验证失败");
+    }
   };
 
   const handleSettingModalOk = () => {
@@ -188,12 +226,22 @@ function App() {
         open={isSettingModalVisible}
         onOk={handleSettingModalOk}
         onCancel={handleSettingModalCancel}
+        okButtonProps={{ disabled: !isApiUrlValid }}
       >
-        <Input
-          value={apiUrl}
-          onChange={(e) => setApiUrl(e.target.value)}
-          placeholder="请输入完整的 API URL（例如：https://api.example.com/v1/url）"
-        />
+        <div className="flex items-center space-x-2">
+          <Input
+            value={apiUrl}
+            onChange={(e) => setApiUrl(e.target.value)}
+            placeholder="请输入完整的 API URL（例如：https://api.example.com/v1/url）"
+            className="flex-grow"
+          />
+          <Button
+            onClick={validateApiUrl}
+            icon={isApiUrlValid ? <SmileOutlined /> : <FrownOutlined />}
+          >
+            验证
+          </Button>
+        </div>
       </Modal>
     </div>
   );
