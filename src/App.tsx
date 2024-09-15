@@ -174,7 +174,7 @@ function App() {
         <div className="space-y-6">
           <div className="flex items-center space-x-4">
             <Paragraph className="mb-0 w-10">链接:</Paragraph>
-            <div className="flex items-center space-x-2 flex-1">
+            <div className="flex items-center space-x-2 flex-1 overflow-hidden">
               <LinkOutlined />
               <a
                 href={pageInfo.link}
