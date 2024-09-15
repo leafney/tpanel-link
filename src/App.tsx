@@ -160,6 +160,7 @@ function App() {
       <Card
         title={
           <div className="flex justify-between items-center">
+            <img src="images/icon48.png" alt="Grape" className="w-5 h-5" />
             <Title level={4} className="text-center flex-grow">
               Grape
             </Title>
