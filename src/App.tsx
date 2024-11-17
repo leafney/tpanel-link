@@ -1,5 +1,15 @@
 import { useState, useEffect } from "react";
-import { Card, Input, Button, Typography, message, Modal, Tooltip } from "antd";
+import {
+  Card,
+  Input,
+  Button,
+  Typography,
+  message,
+  Modal,
+  Tooltip,
+  Cascader,
+  Select,
+} from "antd";
 import {
   LinkOutlined,
   SettingOutlined,
@@ -18,14 +28,17 @@ function App() {
     link: "",
     icon: "",
     desc: "",
+    group: "",
   });
-  const [tags, setTags] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [titleError, setTitleError] = useState(false); // 新增状态
   const [isSettingModalVisible, setIsSettingModalVisible] = useState(false);
   const [apiUrl, setApiUrl] = useState("");
   const [isApiUrlValid, setIsApiUrlValid] = useState(false);
   const [baseUrl, setBaseUrl] = useState("");
-  const API_PATH = "/api/v1/bookmark";
+  const [apiToken, setApiToken] = useState("");
+  const API_PATH = "/api/post/bookmark";
+  // const API_GROUP = "/api/post/group";
 
   // 获取当前页面信息
   useEffect(() => {
@@ -36,13 +49,21 @@ function App() {
         link: tab.url || "",
         icon: tab.favIconUrl || "",
         desc: "",
+        group: "",
       });
     });
 
     // 初始化 apiUrl
-    chrome.storage.sync.get(["apiUrl"], (result) => {
+    chrome.storage.sync.get(["apiUrl", "apiToken", "baseUrl"], (result) => {
+      console.log(result);
       if (result.apiUrl) {
         setApiUrl(result.apiUrl);
+      }
+      if (result.apiToken) {
+        setApiToken(result.apiToken);
+      }
+      if (result.baseUrl) {
+        setBaseUrl(result.baseUrl);
       }
     });
   }, []);
@@ -58,11 +79,16 @@ function App() {
 
     try {
       // 从 Chrome 存储中获取 API 地址
-      const result = await chrome.storage.sync.get(["apiUrl"]);
+      const result = await chrome.storage.sync.get(["apiUrl", "apiToken"]);
+      console.log(result);
       const apiUrl = result.apiUrl;
+      const apiToken = result.apiToken;
 
-      if (!apiUrl) {
-        message.error("请先在设置页面配置 API URL");
+      console.log(apiUrl);
+      console.log(apiToken);
+
+      if (!apiUrl || !apiToken) {
+        message.error("请先在设置页面配置 BASE URL 和 API TOKEN");
         return;
       }
 
@@ -70,8 +96,9 @@ function App() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: apiToken || "",
         },
-        body: JSON.stringify({ ...pageInfo, tags }),
+        body: JSON.stringify({ ...pageInfo, tags: tags.join(",") }),
       });
       if (response.ok) {
         message.success("提交成功！", 1, () => {
@@ -95,6 +122,11 @@ function App() {
 
   // 验证 API URL
   const validateApiUrl = async () => {
+    if (!apiToken.trim()) {
+      message.error("请输入 API TOKEN");
+      return;
+    }
+
     if (!baseUrl.trim()) {
       message.error("请输入基础 URL");
       return;
@@ -107,6 +139,7 @@ function App() {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          Authorization: apiToken || "",
         },
       });
       if (response.ok) {
@@ -125,6 +158,11 @@ function App() {
   };
 
   const handleSettingModalOk = () => {
+    if (!apiToken.trim()) {
+      message.error("请输入 API TOKEN");
+      return;
+    }
+
     if (!baseUrl.trim()) {
       message.error("请输入基础 URL");
       return;
@@ -136,8 +174,8 @@ function App() {
     }
 
     // 保存完整的 API URL 到 Chrome 存储
-    chrome.storage.sync.set({ apiUrl }, () => {
-      message.success("API URL 保存成功");
+    chrome.storage.sync.set({ apiUrl, apiToken, baseUrl }, () => {
+      message.success("API URL 和 API TOKEN 保存成功");
       setIsSettingModalVisible(false);
     });
   };
@@ -227,14 +265,49 @@ function App() {
             />
           </div>
           <div className="flex space-x-4">
-            <Paragraph className="mb-0 w-10">标签:</Paragraph>
-            <Input
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="输入标签，用逗号或空格分隔"
-              className="flex-1 "
+            <Paragraph className="mb-0 w-10">分组:</Paragraph>
+            <Cascader
+              value={pageInfo.group.split("/")}
+              onChange={(value) =>
+                setPageInfo({ ...pageInfo, group: value.join("/") })
+              }
+              placeholder="选择分组"
+              className="flex-1"
+              options={[
+                {
+                  value: "工作",
+                  label: "工作",
+                  children: [
+                    { value: "项目A", label: "项目A" },
+                    { value: "项目B", label: "项目B" },
+                  ],
+                },
+                {
+                  value: "学习",
+                  label: "学习",
+                  children: [
+                    { value: "编程", label: "编程" },
+                    { value: "设计", label: "设计" },
+                  ],
+                },
+                // 可以根据需要添加更多选项
+              ]}
             />
           </div>
+          <div className="flex space-x-4">
+            <Paragraph className="mb-0 w-10">标签:</Paragraph>
+            <Select
+              mode="tags"
+              value={tags}
+              onChange={(values) => setTags(values)}
+              placeholder="输入标签，按回车确认"
+              className="flex-1"
+              tokenSeparators={[",", " "]}
+              allowClear
+              dropdownStyle={{ display: "none" }}
+            />
+          </div>
+
           <div className="flex justify-center">
             <Button
               type="primary"
@@ -254,6 +327,15 @@ function App() {
         onCancel={handleSettingModalCancel}
         okButtonProps={{ disabled: !isApiUrlValid }}
       >
+        <div className="flex items-center space-x-2 mb-4">
+          <Input
+            value={apiToken}
+            onChange={(e) => setApiToken(e.target.value)}
+            placeholder="请输入 API Token"
+            className="flex-grow"
+          />
+          <Paragraph className="mb-0 w-20 mt-2">ApiToken</Paragraph>
+        </div>
         <div className="flex items-center space-x-2">
           <Input
             value={baseUrl}
@@ -261,6 +343,7 @@ function App() {
             placeholder="请输入基础 URL（例如：http://127.0.0.1:8080）"
             className="flex-grow"
           />
+
           <Button
             onClick={validateApiUrl}
             icon={isApiUrlValid ? <SmileOutlined /> : <FrownOutlined />}
