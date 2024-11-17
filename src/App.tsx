@@ -267,18 +267,29 @@ function App() {
           <div className="flex space-x-4">
             <Paragraph className="mb-0 w-10">分组:</Paragraph>
             <Cascader
-              value={pageInfo.group.split("/")}
-              onChange={(value) =>
-                setPageInfo({ ...pageInfo, group: value.join("/") })
-              }
+              value={pageInfo.group ? [pageInfo.group] : []}
+              onChange={(value) => {
+                // 如果有选择值，则取最后一个值
+                const lastValue =
+                  value.length > 0 ? value[value.length - 1] : "";
+                setPageInfo({ ...pageInfo, group: lastValue });
+              }}
               placeholder="选择分组"
               className="flex-1"
+              changeOnSelect // 允许选择任意级别
               options={[
                 {
                   value: "工作",
                   label: "工作",
                   children: [
-                    { value: "项目A", label: "项目A" },
+                    {
+                      value: "项目A",
+                      label: "项目A",
+                      children: [
+                        { value: "子项目1", label: "子项目1" },
+                        { value: "子项目2", label: "子项目2" },
+                      ],
+                    },
                     { value: "项目B", label: "项目B" },
                   ],
                 },
@@ -290,7 +301,10 @@ function App() {
                     { value: "设计", label: "设计" },
                   ],
                 },
-                // 可以根据需要添加更多选项
+                {
+                  value: "1",
+                  label: "开车",
+                },
               ]}
             />
           </div>
