@@ -89,19 +89,8 @@ function App() {
       if (response.ok) {
         const data = await response.json();
         if (data.code === 200 && data.data) {
-          // 转换API返回的数据格式为Cascader组件所需的格式
-          const formatGroups = (groups: any[]): any[] => {
-            return groups.map((group) => ({
-              value: group.id.toString(),
-              label: group.name,
-              children:
-                group.children && group.children.length > 0
-                  ? formatGroups(group.children)
-                  : [],
-            }));
-          };
-
-          setGroupOptions(formatGroups(data.data));
+          // 直接使用API返回的数据，不需要转换格式
+          setGroupOptions(data.data);
         } else {
           console.error("获取分组数据失败:", data.msg || "未知错误");
         }
@@ -320,11 +309,23 @@ function App() {
             <Paragraph className="mb-0 w-10">分组:</Paragraph>
             <Cascader
               value={pageInfo.group ? [pageInfo.group] : []}
+              displayRender={(label) => {
+                return label.join(" / ");
+              }}
               onChange={(value) => {
-                // 如果有选择值，则取最后一个值
-                const lastValue =
-                  value.length > 0 ? value[value.length - 1] : "";
-                setPageInfo({ ...pageInfo, group: lastValue });
+                if (value && value.length > 0) {
+                  // 获取最后一个选中的值作为 group
+                  const selectedValue = value[value.length - 1].toString();
+                  setPageInfo({
+                    ...pageInfo,
+                    group: selectedValue,
+                  });
+                } else {
+                  setPageInfo({
+                    ...pageInfo,
+                    group: "",
+                  });
+                }
               }}
               placeholder="选择分组"
               className="flex-1"
