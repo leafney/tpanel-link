@@ -309,8 +309,21 @@ function App() {
             <Paragraph className="mb-0 w-10">分组:</Paragraph>
             <Cascader
               value={pageInfo.group ? [pageInfo.group] : []}
-              displayRender={(label) => {
-                return label.join(" / ");
+              displayRender={(labels, selectedOptions) => {
+                // 检查是否有选中项
+                if (
+                  labels &&
+                  labels.length > 0 &&
+                  selectedOptions &&
+                  selectedOptions.length > 0
+                ) {
+                  // 返回所有选中项的标签（与 selectedOptions 中的顺序一致）
+                  // return labels.join(" / ");
+                  return selectedOptions
+                    .map((option) => option.label)
+                    .join("/");
+                }
+                return "";
               }}
               onChange={(value) => {
                 if (value && value.length > 0) {
