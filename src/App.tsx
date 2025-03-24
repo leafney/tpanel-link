@@ -37,8 +37,10 @@ function App() {
   const [isApiUrlValid, setIsApiUrlValid] = useState(false);
   const [baseUrl, setBaseUrl] = useState("");
   const [apiToken, setApiToken] = useState("");
+  const [groupOptions, setGroupOptions] = useState<any[]>([]); // 新增分组数据状态
+
   const API_PATH = "/api/post/bookmark";
-  // const API_GROUP = "/api/post/group";
+  const API_GROUP_PATH = "/api/post/groups"; // 定义分组API路径
 
   // 获取当前页面信息
   useEffect(() => {
@@ -64,9 +66,41 @@ function App() {
       }
       if (result.baseUrl) {
         setBaseUrl(result.baseUrl);
+        // 如果有baseUrl和apiToken，则获取分组数据
+        if (result.baseUrl && result.apiToken) {
+          fetchGroupOptions(result.baseUrl, result.apiToken);
+        }
       }
     });
   }, []);
+
+  // 获取分组数据
+  const fetchGroupOptions = async (baseUrl: string, token: string) => {
+    try {
+      const fullGroupApiUrl = `${baseUrl}${API_GROUP_PATH}`;
+      const response = await fetch(fullGroupApiUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token || "",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.code === 200 && data.data) {
+          // 直接使用API返回的数据，不需要转换格式
+          setGroupOptions(data.data);
+        } else {
+          console.error("获取分组数据失败:", data.msg || "未知错误");
+        }
+      } else {
+        console.error("获取分组数据请求失败");
+      }
+    } catch (error) {
+      console.error("获取分组数据出错:", error);
+    }
+  };
 
   // 提交数据
   const handleSubmit = async () => {
@@ -146,6 +180,9 @@ function App() {
         setIsApiUrlValid(true);
         setApiUrl(fullApiUrl); // 保存完整的 URL
         message.success("API URL 验证成功");
+
+        // 验证成功后立即获取分组数据
+        fetchGroupOptions(baseUrl.trim(), apiToken);
       } else {
         setIsApiUrlValid(false);
         message.error("API URL 验证失败");
@@ -176,6 +213,10 @@ function App() {
     // 保存完整的 API URL 到 Chrome 存储
     chrome.storage.sync.set({ apiUrl, apiToken, baseUrl }, () => {
       message.success("API URL 和 API TOKEN 保存成功");
+
+      // 保存设置后再次获取最新的分组数据
+      fetchGroupOptions(baseUrl, apiToken);
+
       setIsSettingModalVisible(false);
     });
   };
@@ -267,7 +308,6 @@ function App() {
           <div className="flex space-x-4">
             <Paragraph className="mb-0 w-10">分组:</Paragraph>
             <Cascader
-              value={pageInfo.group ? [pageInfo.group] : []}
               onChange={(value) => {
                 // 如果有选择值，则取最后一个值
                 const lastValue =
@@ -277,35 +317,7 @@ function App() {
               placeholder="选择分组"
               className="flex-1"
               changeOnSelect // 允许选择任意级别
-              options={[
-                {
-                  value: "工作",
-                  label: "工作",
-                  children: [
-                    {
-                      value: "项目A",
-                      label: "项目A",
-                      children: [
-                        { value: "子项目1", label: "子项目1" },
-                        { value: "子项目2", label: "子项目2" },
-                      ],
-                    },
-                    { value: "项目B", label: "项目B" },
-                  ],
-                },
-                {
-                  value: "学习",
-                  label: "学习",
-                  children: [
-                    { value: "编程", label: "编程" },
-                    { value: "设计", label: "设计" },
-                  ],
-                },
-                {
-                  value: "1",
-                  label: "开车",
-                },
-              ]}
+              options={groupOptions}
             />
           </div>
           <div className="flex space-x-4">
