@@ -1,11 +1,13 @@
-# grape-link
+# tpanel-link
 
 ## build
 
 ```
-pnpm run dev
+bun install
 
-pnpm build
+bun run dev
+
+bun run build
 ```
 
 ---
