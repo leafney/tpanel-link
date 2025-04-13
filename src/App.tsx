@@ -92,10 +92,14 @@ function App() {
           // 直接使用API返回的数据，不需要转换格式
           setGroupOptions(data.data);
         } else {
-          console.error("获取分组数据失败:", data.msg || "未知错误");
+          const errorMsg = data.error || data.msg || "未知错误";
+          message.error(`获取分组数据失败: ${errorMsg}`);
+          console.error("获取分组数据失败:", errorMsg);
         }
       } else {
-        console.error("获取分组数据请求失败");
+        const errorMsg = "获取分组数据请求失败";
+        message.error(errorMsg);
+        console.error(errorMsg);
       }
     } catch (error) {
       console.error("获取分组数据出错:", error);
@@ -135,12 +139,22 @@ function App() {
         body: JSON.stringify({ ...pageInfo, tags: tags.join(",") }),
       });
       if (response.ok) {
-        message.success("提交成功！", 1, () => {
-          // 在成功消息显示后关闭窗口
-          window.close();
+        response.json().then(data => {
+          if (data.code === 200) {
+            message.success("提交成功！", 1, () => {
+              window.close();
+            });
+          } else {
+            const errorMsg = data.error || data.msg || "提交失败，请重试。";
+            message.error(errorMsg);
+          }
+        }).catch(() => {
+          message.error("解析响应数据失败");
         });
       } else {
-        message.error("提交失败，请重试。");
+        const errorMsg = "提交失败，请重试。";
+        message.error(errorMsg);
+        console.error(errorMsg);
       }
     } catch (error) {
       console.error("提交出错:", error);
@@ -177,12 +191,22 @@ function App() {
         },
       });
       if (response.ok) {
-        setIsApiUrlValid(true);
-        setApiUrl(fullApiUrl); // 保存完整的 URL
-        message.success("API URL 验证成功");
-
-        // 验证成功后立即获取分组数据
-        fetchGroupOptions(baseUrl.trim(), apiToken);
+        response.json().then(data => {
+          if (data.code === 200) {
+            setIsApiUrlValid(true);
+            setApiUrl(fullApiUrl); // 保存完整的 URL
+            message.success("API URL 验证成功");
+            // 验证成功后立即获取分组数据
+            fetchGroupOptions(baseUrl.trim(), apiToken);
+          } else {
+            setIsApiUrlValid(false);
+            const errorMsg =data.error || data.msg ||  "API URL 验证失败";
+            message.error(errorMsg);
+          }
+        }).catch(() => {
+          setIsApiUrlValid(false);
+          message.error("解析响应数据失败");
+        });
       } else {
         setIsApiUrlValid(false);
         message.error("API URL 验证失败");
@@ -239,9 +263,9 @@ function App() {
       <Card
         title={
           <div className="flex justify-between items-center">
-            <img src="images/icon48.png" alt="Grape" className="w-5 h-5" />
+            <img src="images/icon48.png" alt="TPanel" className="w-5 h-5" />
             <Title level={4} className="text-center flex-grow">
-              Grape
+             TPanel
             </Title>
             <SettingOutlined
               className="text-xl cursor-pointer"
@@ -268,7 +292,7 @@ function App() {
           </div>
           <div className="flex items-center space-x-4">
             <Paragraph className="mb-0 w-10">图标:</Paragraph>
-            <img src={pageInfo.icon} alt="图标" className="w-12 h-12" />
+            <img src={pageInfo.icon} alt="图标" className="w-12 h-12 bg-gray-100" />
           </div>
           <div className="flex space-x-4">
             <Paragraph className="mb-0 w-10">标题:</Paragraph>
