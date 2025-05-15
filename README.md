@@ -1,6 +1,6 @@
 # tpanel-link
 
-This project is the official browser extension for [tpanel](https://github.com/leafney/tpanel), designed for quickly adding browser bookmarks.
+This project is the official browser extension for [TPanel](https://github.com/leafney/tpanel), designed for quickly adding browser bookmarks.
 
 ## build
 
@@ -23,5 +23,15 @@ bun run build
 5. 点击"加载已解压的扩展程序"按钮
 6. 选择解压后的文件夹(通常包含manifest.json文件)
 7. 插件将自动安装并出现在扩展列表中
+
+---
+
+## 配置说明
+
+1. 先从 `tpanel` 管理后台中获取 `api token`
+2. 打开插件设置页面，输入 `api token`
+3. 填写 `tpanel` 地址
+4. 点击 `验证` 按钮，如果提示 `验证成功`，则说明配置正确
+5. 点击 `OK` 按钮，保存插件配置
 
 ---
