@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "grape-link",
+      "name": "tpanel-link",
       "dependencies": {
         "@ant-design/icons": "^5.4.0",
         "@types/chrome": "^0.0.270",
