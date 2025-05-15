@@ -1,5 +1,5 @@
 {
-  "name": "grape-link",
+  "name": "tpanel-link",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@ant-design/icons": "^5.4.0",
