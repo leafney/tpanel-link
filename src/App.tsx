@@ -9,6 +9,7 @@ import {
   Tooltip,
   Cascader,
   Select,
+  Switch,
 } from "antd";
 import {
   LinkOutlined,
@@ -29,6 +30,7 @@ function App() {
     icon: "",
     desc: "",
     group: "",
+    mode: false, // 是否自动添加到自定义模式
   });
   const [tags, setTags] = useState<string[]>([]);
   const [titleError, setTitleError] = useState(false); // 新增状态
@@ -52,11 +54,12 @@ function App() {
         icon: tab.favIconUrl || "",
         desc: "",
         group: "",
+        mode: false,
       });
     });
 
-    // 初始化 apiUrl
-    chrome.storage.sync.get(["apiUrl", "apiToken", "baseUrl"], (result) => {
+    // 初始化 apiUrl 和其他设置
+    chrome.storage.sync.get(["apiUrl", "apiToken", "baseUrl", "autoMode"], (result) => {
       console.log(result);
       if (result.apiUrl) {
         setApiUrl(result.apiUrl);
@@ -70,6 +73,10 @@ function App() {
         if (result.baseUrl && result.apiToken) {
           fetchGroupOptions(result.baseUrl, result.apiToken);
         }
+      }
+      // 加载自动模式设置
+      if (result.autoMode !== undefined) {
+        setPageInfo(prev => ({ ...prev, mode: result.autoMode }));
       }
     });
   }, []);
@@ -136,7 +143,15 @@ function App() {
           "Content-Type": "application/json",
           Authorization: apiToken || "",
         },
-        body: JSON.stringify({ ...pageInfo, tags: tags.join(",") }),
+        body: JSON.stringify({ 
+          title: pageInfo.title,
+          link: pageInfo.link,
+          icon: pageInfo.icon,
+          desc: pageInfo.desc,
+          group: pageInfo.group,
+          tags: tags.join(","),
+          mode: pageInfo.mode
+        }),
       });
       if (response.ok) {
         response.json().then(data => {
@@ -259,44 +274,48 @@ function App() {
   };
 
   return (
-    <div className="xbox flex justify-center items-center min-h-screen bg-gray-100 p-4">
+    <div className="xbox bg-white p-2">
       <Card
         title={
           <div className="flex justify-between items-center">
             <img src="images/icon48.png" alt="TPanel" className="w-5 h-5" />
-            <Title level={4} className="text-center flex-grow">
+            <Title level={4} className="text-center flex-grow mb-0">
              TPanel
             </Title>
             <SettingOutlined
-              className="text-xl cursor-pointer"
+              className="text-xl cursor-pointer hover:text-blue-500"
               onClick={handleConfigClick}
             />
           </div>
         }
-        className="w-full max-w-full sm:max-w-3xl mx-auto"
+        className="w-full shadow-sm"
+        bodyStyle={{ padding: '16px' }}
+        headStyle={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0' }}
       >
-        <div className="space-y-6">
-          <div className="flex items-center space-x-4">
-            <Paragraph className="mb-0 w-10">链接:</Paragraph>
+        <div className="space-y-3">
+          <div className="flex items-center space-x-3">
+            <Paragraph className="mb-0 w-12 text-sm font-medium text-gray-700">链接:</Paragraph>
             <div className="flex items-center space-x-2 flex-1 overflow-hidden">
-              <LinkOutlined />
+              <LinkOutlined className="text-sm text-blue-500" />
               <a
                 href={pageInfo.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-500 hover:text-blue-700 truncate"
+                className="text-blue-500 hover:text-blue-700 truncate text-sm"
               >
                 {pageInfo.title}
               </a>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <Paragraph className="mb-0 w-10">图标:</Paragraph>
-            <img src={pageInfo.icon} alt="图标" className="w-12 h-12 bg-gray-100" />
+          
+          <div className="flex items-center space-x-3">
+            <Paragraph className="mb-0 w-12 text-sm font-medium text-gray-700">图标:</Paragraph>
+            <img src={pageInfo.icon} alt="图标" className="w-10 h-10 bg-gray-50 border border-gray-200 rounded" />
           </div>
-          <div className="flex space-x-4">
-            <Paragraph className="mb-0 w-10">标题:</Paragraph>
-            <div className="flex-1 flex items-center space-x-2">
+          
+          <div className="flex space-x-3">
+            <Paragraph className="mb-0 w-12 text-sm font-medium text-gray-700 pt-1">标题:</Paragraph>
+            <div className="flex-1 flex items-start space-x-2">
               <Input.TextArea
                 value={pageInfo.title}
                 onChange={(e) => {
@@ -305,32 +324,36 @@ function App() {
                 }}
                 placeholder="编辑标题（必填）"
                 className={`flex-1 ${titleError ? "border-red-500" : ""}`}
-                autoSize={{ minRows: 2, maxRows: 5 }}
+                autoSize={{ minRows: 1, maxRows: 3 }}
                 status={titleError ? "error" : ""}
               />
               <Tooltip title="复制标题到描述">
                 <Button
                   icon={<CopyOutlined />}
                   onClick={copyTitleToDesc}
+                  size="small"
                   className="flex-shrink-0"
+                  type="text"
                 />
               </Tooltip>
             </div>
           </div>
-          <div className="flex space-x-4">
-            <Paragraph className="mb-0 w-10">描述:</Paragraph>
+          
+          <div className="flex space-x-3">
+            <Paragraph className="mb-0 w-12 text-sm font-medium text-gray-700 pt-1">描述:</Paragraph>
             <Input.TextArea
               value={pageInfo.desc}
               onChange={(e) =>
                 setPageInfo({ ...pageInfo, desc: e.target.value })
               }
               placeholder="编辑描述"
-              className="flex-1 "
-              autoSize={{ minRows: 3, maxRows: 6 }}
+              className="flex-1"
+              autoSize={{ minRows: 1, maxRows: 3 }}
             />
           </div>
-          <div className="flex space-x-4">
-            <Paragraph className="mb-0 w-10">分组:</Paragraph>
+          
+          <div className="flex items-center space-x-3">
+            <Paragraph className="mb-0 w-12 text-sm font-medium text-gray-700">分组:</Paragraph>
             <Cascader
               onChange={(value) => {
                 // 如果有选择值，则取最后一个值
@@ -344,8 +367,9 @@ function App() {
               options={groupOptions}
             />
           </div>
-          <div className="flex space-x-4">
-            <Paragraph className="mb-0 w-10">标签:</Paragraph>
+          
+          <div className="flex items-center space-x-3">
+            <Paragraph className="mb-0 w-12 text-sm font-medium text-gray-700">标签:</Paragraph>
             <Select
               mode="tags"
               value={tags}
@@ -357,14 +381,31 @@ function App() {
               dropdownStyle={{ display: "none" }}
             />
           </div>
+          
+          <div className="flex items-center space-x-3 bg-gray-50 p-3 rounded border">
+            <Paragraph className="mb-0 w-12 text-sm font-medium text-gray-700">模式:</Paragraph>
+            <div className="flex items-center space-x-3 flex-1">
+              <Switch
+                checked={pageInfo.mode}
+                onChange={(checked) => {
+                  setPageInfo({ ...pageInfo, mode: checked });
+                  // 同时保存到本地存储
+                  chrome.storage.sync.set({ autoMode: checked });
+                }}
+              />
+              <span className="text-sm text-gray-600">
+                自动添加到包含该分组的自定义模式
+              </span>
+            </div>
+          </div>
 
-          <div className="flex justify-center">
+          <div className="flex justify-center pt-3">
             <Button
               type="primary"
               onClick={handleSubmit}
-              className="w-10/12 py-3 text-lg"
+              className="w-full h-10 text-base font-medium"
             >
-              提交
+              提交书签
             </Button>
           </div>
         </div>
